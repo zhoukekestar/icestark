@@ -13,7 +13,7 @@ import {
   Assets,
 } from './util/handleAssets';
 import { setCache } from './util/cache';
-import { loadScriptByFetch, loadScriptByImport } from './util/loaders';
+import { loadScriptByFetch, loadScriptByImport, loadScriptBySystemImport } from './util/loaders';
 import { getLifecyleByLibrary, getLifecyleByRegister } from './util/getLifecycle';
 import { mergeFrameworkBaseToPath, getAppBasename, shouldSetBasename } from './util/helpers';
 import globalConfiguration from './util/globalConfiguration';
@@ -57,7 +57,7 @@ export interface BaseConfig extends PathOption {
    * @deprecated
    */
   umd?: boolean;
-  loadScriptMode?: 'fetch' | 'script' | 'import';
+  loadScriptMode?: 'fetch' | 'script' | 'import' | 'system-import';
   checkActive?: (url: string) => boolean;
   appAssets?: Assets;
   props?: object;
@@ -193,6 +193,14 @@ export async function loadAppModule(appConfig: AppConfig) {
       ]);
       lifecycle = await loadScriptByImport(appAssets.jsList);
       // Not to handle script element temporarily.
+      break;
+    case 'system-import':
+      await loadAndAppendCssAssets([
+        ...appAssets.cssList,
+        ...filterRemovedAssets(importCachedAssets[name] || [], ['LINK', 'STYLE']),
+      ]);
+      lifecycle = await loadScriptBySystemImport(appAssets.jsList);
+      // Not to handle script element temporarily
       break;
     case 'fetch':
       await loadAndAppendCssAssets(appAssets.cssList);

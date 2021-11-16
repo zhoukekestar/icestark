@@ -117,3 +117,52 @@ export async function loadScriptByImport(jsList: Asset[]): Promise<null | Module
 
   return null;
 }
+
+// declare global {
+//   interface Window {
+//     System {
+//       import: ((url: string) => Promise<any>)
+//     }
+//   }
+// }
+// System: ((
+//   callback: ((deadline: RequestIdleCallbackDeadline) => void),
+//   opts?: RequestIdleCallbackOptions,
+// ) => RequestIdleCallbackHandle);
+// cancelIdleCallback: ((handle: RequestIdleCallbackHandle) => void);
+
+export async function loadScriptBySystemImport(jsList: Asset[]): Promise<null | ModuleLifeCycle> {
+  let mount = null;
+  let unmount = null;
+
+  await asyncForEach(jsList, async (js, index) => {
+    if (js.type === AssetTypeEnum.INLINE) {
+      await appendExternalScript(js, {
+        id: `${PREFIX}-js-module-${index}`,
+      });
+    } else {
+      try {
+        // @ts-ignore
+        const { mount: maybeMount, unmount: maybeUnmount } = await window.System.import(js.content);
+
+        if (maybeMount && maybeUnmount) {
+          mount = maybeMount;
+          unmount = maybeUnmount;
+        }
+      } catch (e) {
+        Promise.reject(
+          new Error('[icestark] You are not support to use `loadScriptMode = import` where dynamic import is not supported by browsers.'),
+        );
+      }
+    }
+  });
+
+  if (mount && unmount) {
+    return {
+      mount,
+      unmount,
+    };
+  }
+
+  return null;
+}

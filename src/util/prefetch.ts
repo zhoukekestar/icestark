@@ -20,20 +20,21 @@ interface RequestIdleCallbackDeadline {
   timeRemaining: (() => number);
 }
 
-declare global {
-  interface Window {
-    requestIdleCallback: ((
-      callback: ((deadline: RequestIdleCallbackDeadline) => void),
-      opts?: RequestIdleCallbackOptions,
-    ) => RequestIdleCallbackHandle);
-    cancelIdleCallback: ((handle: RequestIdleCallbackHandle) => void);
-  }
-}
+// declare global {
+//   interface Window {
+//     requestIdleCallback: ((
+//       callback: ((deadline: RequestIdleCallbackDeadline) => void),
+//       opts?: RequestIdleCallbackOptions,
+//     ) => RequestIdleCallbackHandle);
+//     cancelIdleCallback: ((handle: RequestIdleCallbackHandle) => void);
+//   }
+// }
 
 /**
  * polyfill/shim for the `requestIdleCallback` and `cancelIdleCallback`.
  * https://github.com/pladaria/requestidlecallback-polyfill/blob/master/index.js
  */
+// @ts-ignore
 window.requestIdleCallback =
   window.requestIdleCallback ||
   function (cb) {
